@@ -1,4 +1,4 @@
-aiogram==3.0.0b7
 flask==2.2.5
-gunicorn==20.1.0
+aiogram==3.0.0b7
 requests==2.31.0
+hypercorn==0.14.3
