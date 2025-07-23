@@ -1,14 +1,13 @@
 import os
-print("API_TOKEN:", os.getenv("API_TOKEN"))
-
 import asyncio
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 from aiohttp import web
 
-API_TOKEN = os.getenv("API_TOKEN")  # Tokeni environment variable-dan oxuyuruq
+print("API_TOKEN:", os.getenv("API_TOKEN"))  # Tokenin gəldiyini yoxlamaq üçün
 
+API_TOKEN = os.getenv("API_TOKEN")
 if not API_TOKEN:
     raise Exception("API_TOKEN environment variable is not set!")
 
@@ -36,14 +35,13 @@ async def on_shutdown(app):
 async def handle(request):
     try:
         update = await request.json()
-        print("Gələn mesaj:", update)  # Gələn məlumatı konsola yazdırırıq
+        print("Gələn mesaj:", update)  # Konsola gələn mesajı yazdırırıq
         TelegramUpdate = types.Update(**update)
         await dp.process_update(TelegramUpdate)
-        return web.Response(text="OK")
     except Exception as e:
-        print("Xəta:", e)
-        return web.Response(status=500, text=str(e))
-
+        print("Error in handle:", e)
+        return web.Response(status=500, text="Internal Server Error")
+    return web.Response(text="OK")
 
 app = web.Application()
 app.router.add_post("/", handle)
@@ -52,5 +50,4 @@ app.on_shutdown.append(on_shutdown)
 
 if __name__ == "__main__":
     import logging
-    logging.basicConfig(level=logging.INFO)
-    web.run_app(app, host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
+    logging.basicCon
