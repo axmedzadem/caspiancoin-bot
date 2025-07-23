@@ -1,4 +1,6 @@
 import os
+print("API_TOKEN:", os.getenv("API_TOKEN"))
+
 import asyncio
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
