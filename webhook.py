@@ -1,46 +1,49 @@
+import os
 import asyncio
-from flask import Flask, request, Response
 from aiogram import Bot, Dispatcher, types
-from aiogram.types import Update
-import logging
+from aiogram.filters import Command
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
+from aiogram.utils.webhook import SendMessage
+from aiohttp import web
 
-API_TOKEN = "BOT_TOKENUNU_BURA_YAZ"
+API_TOKEN = os.getenv("API_TOKEN")  # Tokeni environment variable-dan oxuyuruq
 
-app = Flask(__name__)
+if not API_TOKEN:
+    raise Exception("API_TOKEN environment variable is not set!")
+
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher()
 
-@dp.message(types.filters.Command(commands=["start"]))
+@dp.message(Command("start"))
 async def cmd_start(message: types.Message):
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="💰 CaspianCoin Al", web_app=WebAppInfo(url="https://caspiancoin.gumroad.com/l/oxnhw"))]
+    ])
     await message.answer(
-        "🌊 *CaspianCoin* — Xəzərdən ilhamlanan rəqəmsal valyuta\n\n"
-        "Aşağıdakı düyməyə kliklə!",
+        text="🌊 *CaspianCoin* — Xəzərdən ilhamlanan rəqəmsal valyuta\n\nAşağıdakı düyməyə kliklə!",
+        reply_markup=keyboard,
         parse_mode="Markdown"
     )
 
-@app.route("/", methods=["GET"])
-def root():
-    return "✅ Bot webhook server is running"
+async def on_startup(app):
+    await bot.delete_webhook(drop_pending_updates=True)
+    await bot.set_webhook("https://caspiancoin-bot-4.onrender.com/")
 
-@app.route("/webhook", methods=["POST"])
-def webhook_handler():
-    update = Update.model_validate(request.json)
-    asyncio.create_task(dp.feed_update(bot, update))
-    return Response(status=200)
+async def on_shutdown(app):
+    await bot.delete_webhook()
+
+async def handle(request):
+    update = await request.json()
+    TelegramUpdate = types.Update(**update)
+    await dp.process_update(TelegramUpdate)
+    return web.Response(text="OK")
+
+app = web.Application()
+app.router.add_post("/", handle)
+app.on_startup.append(on_startup)
+app.on_shutdown.append(on_shutdown)
 
 if __name__ == "__main__":
+    import logging
     logging.basicConfig(level=logging.INFO)
-    import sys
-    if sys.platform == "win32":
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-
-    from hypercorn.asyncio import serve
-    from hypercorn.config import Config
-
-    config = Config()
-    config.bind = ["0.0.0.0:8000"]
-
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(bot.delete_webhook())
-    # Burada webhook set etmək lazım olsa, onu özün API-dən ya manual etməlisən
-    loop.run_until_complete(serve(app, config))
+    web.run_app(app, host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
