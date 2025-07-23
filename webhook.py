@@ -34,11 +34,16 @@ async def on_shutdown(app):
     await bot.delete_webhook()
 
 async def handle(request):
-    update = await request.json()
-    print("Gələn mesaj:", update)  # Konsola gələn Telegram mesajını yazdırırıq
-    TelegramUpdate = types.Update(**update)
-    await dp.process_update(TelegramUpdate)
-    return web.Response(text="OK")
+    try:
+        update = await request.json()
+        print("Gələn mesaj:", update)  # Gələn məlumatı konsola yazdırırıq
+        TelegramUpdate = types.Update(**update)
+        await dp.process_update(TelegramUpdate)
+        return web.Response(text="OK")
+    except Exception as e:
+        print("Xəta:", e)
+        return web.Response(status=500, text=str(e))
+
 
 app = web.Application()
 app.router.add_post("/", handle)
