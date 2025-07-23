@@ -1,10 +1,12 @@
-from flask import Flask, request
+import os
+from flask import Flask
+
 app = Flask(__name__)
 
-@app.route('/gumroad-webhook', methods=['POST'])
-def gumroad_webhook():
-    data = request.json
-    # burada webhook datanı emal et
-    return 'OK', 200
+@app.route("/")
+def home():
+    return "Bot webhook server is running ✅"
 
-# Lazım olsa başqa route-lar əlavə et
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))
+    app.run(host="0.0.0.0", port=port)
