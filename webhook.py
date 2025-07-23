@@ -34,10 +34,13 @@ async def on_shutdown(app):
     await bot.delete_webhook()
 
 async def handle(request):
+    async def handle(request):
     update = await request.json()
+    print("Gələn mesaj:", update)  # Konsola gələn Telegram mesajını yazdırırıq
     TelegramUpdate = types.Update(**update)
     await dp.process_update(TelegramUpdate)
     return web.Response(text="OK")
+
 
 app = web.Application()
 app.router.add_post("/", handle)
